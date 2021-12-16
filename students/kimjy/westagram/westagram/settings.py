@@ -69,8 +69,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'westagram.wsgi.application'
 
 
-SECRET_KEY=SECRET_KEY
-DATABASES=DATABASES
+SECRET_KEY = SECRET_KEY
+
+DATABASES  = DATABASES
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
