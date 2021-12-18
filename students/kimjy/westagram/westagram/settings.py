@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -118,15 +119,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 APPEND_SLASH = False
 
-INSTALLED_APPS = [
-...
-		'corsheaders'
-]
-MIDDLEWARE = [
-	...
-		'corsheaders.middleware.CorsMiddleware',
-	...
-]
 ##CORS
 CORS_ORIGIN_ALLOW_ALL  = True
 CORS_ALLOW_CREDENTIALS = True
