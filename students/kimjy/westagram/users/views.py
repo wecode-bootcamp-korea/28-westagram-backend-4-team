@@ -3,6 +3,7 @@ import re
 
 from django.views      import View
 from django.http       import JsonResponse, Http404
+from django.db.utils   import IntegrityError
 from users.models      import User
 from users.check_items import (check_character_policy, 
                                check_dictionary_keys,
@@ -17,33 +18,30 @@ class SignUpView(View):
 
             check_dictionary_keys(data, login_key_list)
 
-            username     = data['username']
-            email        = data['email'] 
-            password     = data['password']
+            username = data['username']
+            email    = data['email'] 
+            password = data['password']
             
-
             check_character_policy(password_policy, password)
             check_character_policy(email_policy, email)
 
-            if(User.objects.filter(email_address=email).exists()):
-                message = "EMAIL_EXISTS"
-                status  = 409
-
+            if User.objects.filter(email_address=email).exists():
+                raise IntegrityError("EMAIL_DUPLICATED_ERROR")
             else:
                 user = User.objects.create(
-                        username      = username,
-                        password      = password,
-                        email_address = email,
+                            username      = username,
+                            password      = password,
+                            email_address = email,
                 )
                 if 'phone_number' in data:
                     user.phone_number = data['phone_number']
                     user.save()
 
-                message = "SUCCESS"
-                status  = 201
+            return JsonResponse({"message":"SUCCESS"}, status=201)
+        
+        except KeyError as e:
+            return JsonResponse({"message":str(e)}, status=403)
 
-        except Exception as e:
-            message = str(e)
-            status  = 403
+        except IntegrityError as e:
+            return JsonResponse({"message":str(e)}, status=409)
 
-        return JsonResponse({"message":message}, status=status)
