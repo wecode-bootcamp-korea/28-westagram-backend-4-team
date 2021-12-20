@@ -32,15 +32,17 @@ def check_character_policy(policies:list, character:str):
 def check_dictionary_keys(check_dict:dict, necessary_key_list:list):
 
     check_dict_keys = check_dict.keys()
+    
+    #for necessary_key in necessary_key_list:
+    #if necessary_key in check_dict_keys:
+    #    check_keys_flag = True
+    if set(necessary_key_list).issubset(set(check_dict_keys)):
+        check_keys_flag = True
 
-    for necessary_key in necessary_key_list:
-        if necessary_key in check_dict_keys:
-            check_keys_flag = True
-
-        else:
-            print("key list in http body:", set(check_dict_keys))
-            print("necessary_key_list:", set(necessary_key_list))
-            raise Exception('KEY_ERROR')
+    else:
+        print("key list in http body:", set(check_dict_keys))
+        print("necessary_key_list:", set(necessary_key_list))
+        raise Exception('KEY_ERROR')
 
     return check_keys_flag
 

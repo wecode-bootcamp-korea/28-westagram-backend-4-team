@@ -20,7 +20,7 @@ class SignUpView(View):
             username     = data['username']
             email        = data['email'] 
             password     = data['password']
-            phone_number = data['phone_number'] 
+            
 
             check_character_policy(password_policy, password)
             check_character_policy(email_policy, email)
@@ -30,12 +30,15 @@ class SignUpView(View):
                 status  = 409
 
             else:
-                User.objects.create(
+                user = User.objects.create(
                         username      = username,
                         password      = password,
                         email_address = email,
-                        phone_number  = phone_number
                 )
+                if 'phone_number' in data:
+                    user.phone_number = data['phone_number']
+                    user.save()
+
                 message = "SUCCESS"
                 status  = 201
 
