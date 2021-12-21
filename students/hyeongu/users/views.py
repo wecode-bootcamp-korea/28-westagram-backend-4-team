@@ -33,10 +33,12 @@ class SignUpView(View):
                     mobile_number = user_data['mobile_number']
                 else: 
                     mobile_number = None
+                    
                 if 'birth_date' in user_data.keys():
                     birth_date = user_data['brith_date']
                 else:
                     birth_date = None
+
                 User.objects.create(
                     full_name     = full_name,
                     email         = email,
