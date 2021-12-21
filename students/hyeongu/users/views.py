@@ -10,44 +10,36 @@ from .validations import is_email_valid, is_password_valid
 class SignUpView(View):
     def post(self, request):
         user_data = json.loads(request.body)
-        try:
-            full_name = user_data['full_name']
-            email     = user_data['email']
-            password  = user_data['password']
-            username  = user_data['username']
         
-            if is_email_valid(email) == None:
+        try:
+            full_name     = user_data['full_name']
+            email         = user_data['email']
+            password      = user_data['password']
+            username      = user_data['username']
+            mobile_number = user_data.get('mobile_number', None)
+            birth_date    = user_data.get('birth_date', None)
+        
+            if not is_email_valid(email):
                 raise ValidationError('INVALID_EMAIL')
 
-            elif is_password_valid(password) == None:
+            if not is_password_valid(password):
                 raise ValidationError('INVALID_PASSWORD')
 
-            elif User.objects.filter(email=email).exists():
+            if User.objects.filter(email=email).exists():
                 raise ValidationError('DUPLICATED_EMAIL')
 
-            elif User.objects.filter(username=username).exists():
+            if User.objects.filter(username=username).exists():
                 raise ValidationError('DUPLICATED_USERNAME')
 
-            else:
-                if 'mobile_number' in user_data.keys():
-                    mobile_number = user_data['mobile_number']
-                else: 
-                    mobile_number = None
-                    
-                if 'birth_date' in user_data.keys():
-                    birth_date = user_data['brith_date']
-                else:
-                    birth_date = None
-
-                User.objects.create(
-                    full_name     = full_name,
-                    email         = email,
-                    password      = password,
-                    username      = username,
-                    mobile_number = mobile_number,
-                    birth_date    = birth_date,
-                )
-                return JsonResponse({'message':'SUCCESS'}, status=201)
+            User.objects.create(
+                full_name     = full_name,
+                email         = email,
+                password      = password,
+                username      = username,
+                mobile_number = mobile_number,
+                birth_date    = birth_date,
+            )
+            return JsonResponse({'message':'SUCCESS'}, status=201)
 
         except KeyError:
             return JsonResponse({"message":"KEY_ERROR"}, status=400)
