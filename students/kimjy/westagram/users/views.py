@@ -1,46 +1,45 @@
 import json
 import re
 
-from django.views      import View
-from django.http       import JsonResponse, Http404
-from django.db.utils   import IntegrityError
-from users.models      import User
-from users.check_items import (check_character_policy, 
-                               check_dictionary_keys,
-                               login_key_list,
-                               password_policy,
-                               email_policy)
+from django.views          import View
+from django.http           import JsonResponse, Http404
+from django.db.utils       import IntegrityError
+from users.models          import User
+from users.validator       import (validate_password,
+                                   validate_email)
+
+from westagram.checkitem import CheckItem
 
 class SignUpView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
 
-            check_dictionary_keys(data, login_key_list)
+            signup_key_list=['username', 'email', 'password',]
+            CheckItem.check_keys_in_body(data, signup_key_list)
 
-            username = data['username']
-            email    = data['email'] 
-            password = data['password']
+            username     = data.get('username')
+            email        = data.get('email')
+            password     = data.get('password')
+            phone_number = data.get('phone_number')
             
-            check_character_policy(password_policy, password)
-            check_character_policy(email_policy, email)
+            validate_email(email)
+            validate_password(password)
 
             if User.objects.filter(email_address=email).exists():
                 raise IntegrityError("EMAIL_DUPLICATED_ERROR")
-            else:
-                user = User.objects.create(
-                            username      = username,
-                            password      = password,
-                            email_address = email,
-                )
-                if 'phone_number' in data:
-                    user.phone_number = data['phone_number']
-                    user.save()
+            
+            user = User.objects.create(
+                        username      = username,
+                        password      = password,
+                        email_address = email,
+                        phone_number  = phone_number,
+            )
 
             return JsonResponse({"message":"SUCCESS"}, status=201)
         
         except KeyError as e:
-            return JsonResponse({"message":str(e)}, status=403)
+            return JsonResponse({"message":str(e)}, status=400)
 
         except IntegrityError as e:
             return JsonResponse({"message":str(e)}, status=409)
