@@ -41,10 +41,10 @@ class SignUpView(View):
             return JsonResponse({"message":"SUCCESS"}, status=201)
         
         except KeyError as e:
-            return JsonResponse({"message":str(e)}, status=400)
+            return JsonResponse({"message":str(e.message)}, status=400)
 
         except IntegrityError as e:
-            return JsonResponse({"message":str(e)}, status=409)
+            return JsonResponse({"message":str(e.message)}, status=409)
 
 class SignInView(View):
     def post(self, request):
@@ -59,19 +59,11 @@ class SignInView(View):
 
             user = User.objects.filter(email_address=email)
             
-            if not user.exists():
-                raise EmptyResultSet("INVALID_USER")
-
-            if user[0].password != password:
-                raise PermissionDenied("INVALID_USER")
+            if not User.objects.filter(email_address=email, password=password).exists():
+                return JsonResponse({'message' : 'INVALID_USER'}, status=401)
 
             return JsonResponse({"message":"SUCCESS"}, status=200)
 
         except KeyError as e:
-            return JsonResponse({"message":str(e)}, status=400)
+            return JsonResponse({"message":str(e.message)}, status=400)
 
-        except EmptyResultSet as e:
-            return JsonResponse({"message":str(e)}, status=401)
-
-        except PermissionDenied as e:
-            return JsonResponse({"message":str(e)}, status=401)
