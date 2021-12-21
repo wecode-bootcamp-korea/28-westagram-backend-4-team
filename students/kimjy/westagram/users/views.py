@@ -57,8 +57,6 @@ class SignInView(View):
             email    = data.get("email")
             password = data.get("password")
 
-            user = User.objects.filter(email_address=email)
-            
             if not User.objects.filter(email_address=email, password=password).exists():
                 return JsonResponse({'message' : 'INVALID_USER'}, status=401)
 
