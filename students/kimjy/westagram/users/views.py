@@ -1,14 +1,16 @@
 import json
 import re
 
-from django.views          import View
-from django.http           import JsonResponse, Http404
-from django.db.utils       import IntegrityError
-from users.models          import User
-from users.validator       import (validate_password,
+from django.views           import View
+from django.http            import JsonResponse, Http404
+from django.db.utils        import IntegrityError
+from django.core.exceptions import (PermissionDenied,
+                                    EmptyResultSet)
+from users.models           import User
+from users.validator        import (validate_password,
                                    validate_email)
 
-from westagram.checkitem import CheckItem
+from westagram.checkitem    import CheckItem
 
 class SignUpView(View):
     def post(self, request):
@@ -44,3 +46,31 @@ class SignUpView(View):
         except IntegrityError as e:
             return JsonResponse({"message":str(e)}, status=409)
 
+class SignInView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            
+            signin_key_list=["email", "password"]
+
+            email    = data.get("email")
+            password = data.get("password")
+
+            user = User.objects.filter(email_address=email)
+            
+            if not user.exists():
+                raise EmptyResultSet("INVALID_USER")
+
+            if user[0].password != password:
+                raise PermissionDenied("INVALID_USER")
+
+            return JsonResponse({"message":"SUCCESS"}, status=200)
+
+        except KeyError as e:
+            return JsonResponse({"message":str(e)}, status=400)
+
+        except EmptyResultSet as e:
+            return JsonResponse({"message":str(e)}, status=401)
+
+        except PermissionDenied as e:
+            return JsonResponse({"message":str(e)}, status=401)
