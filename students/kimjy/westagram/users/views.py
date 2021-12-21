@@ -52,6 +52,7 @@ class SignInView(View):
             data = json.loads(request.body)
             
             signin_key_list=["email", "password"]
+            CheckItem.check_keys_in_body(data, signin_key_list)
 
             email    = data.get("email")
             password = data.get("password")
