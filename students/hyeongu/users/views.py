@@ -59,17 +59,20 @@ class LogInView(View):
             password      = login_data['password']
 
             if not User.objects.filter(email = email).exists():
-                raise ValidationError
+                raise ValidationError('INVALID_USER')
 
             hashed_password = User.objects.get(email=email).password.encode('utf-8')
 
             if not bcrypt.checkpw(password.encode('utf-8'), hashed_password):
-                raise ValidationError
+                raise ValidationError('INVALID_USER')
 
-            return JsonResponse({"message": "SUCCESS"}, status=200)
+            return JsonResponse({"message":"SUCCESS"}, status=200)
 
         except KeyError:
             return JsonResponse({"message":"KEY_ERROR"}, status=400)
 
-        except ValidationError:
+        except ValidationError as e:
+            return JsonResponse({"message":e.message}, status=401)
+
+        except User.DoesNotExist:
             return JsonResponse({"message":"INVALID_USER"}, status=401)
