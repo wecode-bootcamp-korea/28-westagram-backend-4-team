@@ -5,5 +5,5 @@ def confirm_email(email):
     return re.match(email_regex, email)
 
 def confirm_password(password):
-    password_regex = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@!%*#?&])[A-Za-z\d@!%*#?&]{8,}$"
+    password_regex = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@!%*#?&])[A-Za-z\d@!%*#?&]{8,25}$"
     return re.match(password_regex, password)
