@@ -1,4 +1,5 @@
 import json
+import bcrypt
 
 from django.http            import JsonResponse
 from django.views           import View
@@ -25,6 +26,8 @@ class SignUpView(View):
             if not is_password_valid(password):
                 raise ValidationError('INVALID_PASSWORD')
 
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
             if User.objects.filter(email=email).exists():
                 raise ValidationError('DUPLICATED_EMAIL')
 
@@ -34,7 +37,7 @@ class SignUpView(View):
             User.objects.create(
                 full_name     = full_name,
                 email         = email,
-                password      = password,
+                password      = hashed_password,
                 username      = username,
                 mobile_number = mobile_number,
                 birth_date    = birth_date,
@@ -51,13 +54,22 @@ class LogInView(View):
     def post(self, request):
         try:
             login_data    = json.loads(request.body)
+
             email         = login_data['email']
             password      = login_data['password']
 
-            if not User.objects.filter(email = email, password = password).exists():
-                return JsonResponse({"message":"INVALID_USER"}, status=401)
+            if not User.objects.filter(email = email).exists():
+                raise ValidationError
+
+            hashed_password = User.objects.get(email=email).password.encode('utf-8')
+
+            if not bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+                raise ValidationError
 
             return JsonResponse({"message": "SUCCESS"}, status=200)
 
         except KeyError:
             return JsonResponse({"message":"KEY_ERROR"}, status=400)
+
+        except ValidationError:
+            return JsonResponse({"message":"INVALID_USER"}, status=401)
