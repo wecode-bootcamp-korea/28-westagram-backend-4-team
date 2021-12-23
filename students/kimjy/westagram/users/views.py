@@ -1,4 +1,5 @@
 import json
+import datetime
 
 import jwt
 import bcrypt
@@ -6,6 +7,7 @@ import bcrypt
 from django.views           import View
 from django.http            import JsonResponse, Http404
 from django.db.utils        import IntegrityError
+from django.conf            import settings
 from django.core.exceptions import (PermissionDenied,
                                     EmptyResultSet)
 from users.models           import User
@@ -13,7 +15,6 @@ from users.validator        import (validate_password,
                                    validate_email)
 
 from westagram.checkitem    import CheckItem
-from my_settings            import SECRET_KEY, ALGORITHM
 class SignUpView(View):
     def post(self, request):
         try:
@@ -65,20 +66,21 @@ class SignInView(View):
             email    = data.get("email")
             password = data.get("password")
 
-            user = User.objects.filter(email_address=email)
+            user = User.objects.get(email_address=email)
 
-            if not (user.exists()):
-                return JsonResponse({'message' : 'INVALID_USER'}, status=401)
+            #if not (user.exists()):
+            #    return JsonResponse({'message' : 'INVALID_USER'}, status=401)
             
-            valid_password = user.get().password.encode('utf-8')
+            valid_password = user.password.encode('utf-8')
 
             if not bcrypt.checkpw(password.encode('utf-8'), valid_password):
                 return JsonResponse({'message' : 'INVALID_USER'}, status=401)
 
+            exp_date = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
             access_token = jwt.encode(
-                    {'id': user.get().id},
-                    SECRET_KEY,
-                    algorithm=ALGORITHM,
+                    {'id': user.id, 'exp':exp_date},
+                    settings.SECRET_KEY,
+                    algorithm=settings.ALGORITHM,
             )
 
             return JsonResponse({"message":"SUCCESS", "token":access_token}, status=200)
@@ -86,3 +88,5 @@ class SignInView(View):
         except KeyError as e:
             return JsonResponse({"message":str(e.message)}, status=400)
 
+        except User.DoesNotExist:
+            return JsonResponse({'message':'INVALID_USER'}, status=401)
