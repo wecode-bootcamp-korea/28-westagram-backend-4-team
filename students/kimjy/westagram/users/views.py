@@ -34,9 +34,9 @@ class SignUpView(View):
                 raise IntegrityError("EMAIL_DUPLICATED_ERROR")
             
             hashed_password = bcrypt.hashpw(
-                                      password.encode('utf-8'),
-                                      bcrypt.gensalt()
-                    )
+                    password.encode('utf-8'),
+                    bcrypt.gensalt()
+            )
 
             user = User.objects.create(
                         username      = username,
