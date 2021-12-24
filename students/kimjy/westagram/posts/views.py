@@ -5,15 +5,15 @@ import base64
 from django.views import View
 from django.http  import JsonResponse
 
-from users.models        import User
-from posts.models        import Post, PostImage, Comment
-from westagram.checkitem import CheckItem 
-from westagram.settings  import STATIC_ROOT, POST_IMAGE_DIR, PROFILE_IMAGE_DIR
-
+from users.models             import User
+from posts.models             import Post, PostImage, Comment
+from westagram.checkitem      import CheckItem 
+from westagram.settings       import STATIC_ROOT, POST_IMAGE_DIR, PROFILE_IMAGE_DIR
+from westagram.login_required import login_required
 
 class PostView(View):
 
-    @CheckItem.check_jwt
+    @login_required
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
@@ -23,8 +23,8 @@ class PostView(View):
 
             image_base64     = data.get('image')
             post_description = data.get('post_description') 
-            user_id          = kwargs.get('user_id')
-
+            print(request.user)
+            user = request.user
             if image_base64:
                 image_data = base64.b64decode(image_base64)
 
@@ -33,12 +33,12 @@ class PostView(View):
                 os.makedirs(os.path.join(STATIC_ROOT,POST_IMAGE_DIR))
 
             post = Post.objects.create(
-                    user_id = user_id,
+                    user = user,
                     post_description = post_description,
             )
 
             post_image_root = os.path.join(STATIC_ROOT, POST_IMAGE_DIR)
-            save_file = f"{post_image_root}/{user_id}_{post.id}.jpg"
+            save_file = f"{post_image_root}/{user.id}_{post.id}.jpg"
 
             with open(save_file,'wb') as f:
                 f.write(image_data)
